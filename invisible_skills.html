@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Invisible Edge</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0c0c;--bg2:#141414;--bg3:#1a1a1a;--card:#111;--gold:#c9a84c;--gold2:#e8c97a;--golddim:rgba(201,168,76,0.12);--silver:#a0aab8;--white:#f0ede8;--text:#d4cfc8;--text2:#7a7670;--border:#2a2820;--border2:rgba(201,168,76,0.25);--green:#27ae60;--red:#c0392b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.04),transparent 65%);pointer-events:none;z-index:0}
+.wrap{max-width:1000px;margin:0 auto;padding:0 22px;position:relative;z-index:2}
+header{border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;background:rgba(12,12,12,.96);backdrop-filter:blur(10px);z-index:100}
+.hdr{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold);letter-spacing:3px;white-space:nowrap}
+.logo span{color:var(--white)}
+.xpwrap{flex:1;max-width:360px;min-width:160px}
+.xpmeta{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);margin-bottom:5px}
+.xpmeta .lv{color:var(--gold)}
+.xptrack{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.xpfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .7s}
+.hdrstats{display:flex;gap:18px}
+.hstat{text-align:center}
+.hval{font-family:'Space Mono',monospace;font-size:16px;color:var(--gold2);display:block}
+.hlbl{font-size:9px;color:var(--text2);letter-spacing:1px}
+.resetbtn{font-family:'Space Mono',monospace;font-size:9px;color:var(--text2);border:1px solid var(--border);background:transparent;padding:5px 10px;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.resetbtn:hover{color:var(--red);border-color:var(--red)}
+.hero{padding:50px 0 32px;text-align:center}
+.herotag{font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:4px;border:1px solid var(--border2);display:inline-block;padding:5px 16px;margin-bottom:18px}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,7vw,62px);font-weight:300;letter-spacing:4px;color:var(--white);line-height:1.1;margin-bottom:12px}
+.hero h1 em{color:var(--gold);font-style:italic}
+.hero p{font-size:14px;color:var(--text2);max-width:460px;margin:0 auto 24px;line-height:1.8;font-weight:300}
+.rankwrap{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:36px}
+.rpill{font-family:'Space Mono',monospace;font-size:9px;padding:5px 14px;border:1px solid var(--border);color:var(--text2);letter-spacing:1px;transition:all .3s}
+.rpill.lit{border-color:var(--border2);color:var(--gold)}
+.achiev{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:36px;padding:18px;background:var(--card);border:1px solid var(--border)}
+.badge{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);opacity:.3;transition:all .4s;flex:1;min-width:130px}
+.badge.earned{opacity:1;border-color:var(--border2);background:var(--golddim)}
+.bicon{font-size:15px}
+.bname{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--white);display:block}
+.bdesc{font-family:'Space Mono',monospace;font-size:9px;color:var(--text2)}
+.pnav{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;margin-bottom:32px}
+.pbtn{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;padding:10px 6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;text-align:center;transition:all .2s;line-height:1.6}
+.pbtn:hover{border-color:var(--border2);color:var(--gold)}
+.pbtn.active{border-color:var(--gold);color:var(--gold);background:var(--golddim)}
+.pbtn.done{border-color:rgba(39,174,96,.35);color:rgba(39,174,96,.7)}
+.pillar{display:none}
+.pillar.active{display:block}
+.plrhdr{display:flex;align-items:flex-start;gap:18px;padding:26px;background:var(--card);border:1px solid var(--border);border-left:2px solid var(--gold);margin-bottom:16px}
+.plricon{font-size:34px;line-height:1}
+.plrinfo h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--white);letter-spacing:2px;margin-bottom:4px}
+.plrinfo p{color:var(--text2);font-size:13px;line-height:1.7;font-weight:300}
+.plrxp{margin-left:auto;font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);text-align:right;white-space:nowrap}
+.plrxp span{font-size:20px;display:block}
+.scard{background:var(--card);border:1px solid var(--border);margin-bottom:10px;transition:border-color .2s}
+.scard:hover{border-color:rgba(201,168,76,.18)}
+.scard.completed{border-color:rgba(39,174,96,.22)}
+.shead{display:flex;align-items:center;gap:12px;padding:15px 18px;cursor:pointer;user-select:none}
+.snum{font-family:'Space Mono',monospace;font-size:9px;color:var(--text2);letter-spacing:2px;min-width:44px}
+.stitlew{flex:1}
+.stitle{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;letter-spacing:1px;display:block;margin-bottom:1px}
+.ssub{font-size:11px;color:var(--text2);font-weight:300}
+.sprogw{display:flex;align-items:center;gap:8px}
+.spbar{width:56px;height:3px;background:var(--border);border-radius:1px;overflow:hidden}
+.spfill{height:100%;background:var(--gold);border-radius:1px;transition:width .4s}
+.sxp{font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);white-space:nowrap}
+.scheck{width:20px;height:20px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.scheck:hover{border-color:var(--gold)}
+.scheck.done{background:var(--gold);border-color:var(--gold);color:#000;font-weight:700}
+.sexp{color:var(--text2);font-size:13px;transition:transform .3s}
+.scard.open .sexp{transform:rotate(180deg)}
+.sbody{display:none;padding:0 18px 18px;border-top:1px solid var(--border)}
+.scard.open .sbody{display:block}
+.squote{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:var(--gold2);padding:14px 0 12px;border-bottom:1px solid var(--border);margin-bottom:14px;line-height:1.6}
+.mbox{background:var(--bg3);border:1px solid var(--border);padding:11px;margin-bottom:8px}
+.mbox label{font-family:'Space Mono',monospace;font-size:8px;color:var(--text2);letter-spacing:2px;display:block;margin-bottom:4px}
+.mbox p{font-size:12px;color:var(--text);line-height:1.5;font-weight:300}
+.dailybox{margin-top:12px;padding:12px 14px;border:1px solid var(--border2);background:var(--golddim)}
+.dlbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:2px;margin-bottom:5px}
+.dtxt{font-size:13px;color:var(--text);line-height:1.6;font-weight:300}
+.tlbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--text2);letter-spacing:2px;margin:14px 0 7px}
+.titem{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border:1px solid var(--border);margin-bottom:4px;background:var(--bg2);cursor:pointer;transition:all .15s}
+.titem:hover{border-color:rgba(201,168,76,.18);background:rgba(201,168,76,.025)}
+.titem.done{opacity:.5}
+.titem.done .ttxt{text-decoration:line-through;color:var(--text2)}
+.tcb{width:14px;height:14px;border:1px solid var(--border);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s}
+.titem.done .tcb{background:var(--gold);border-color:var(--gold);color:#000}
+.ttxt{font-size:13px;line-height:1.5;flex:1;font-weight:300}
+.ttype{font-family:'Space Mono',monospace;font-size:8px;padding:2px 5px;flex-shrink:0;margin-top:2px;letter-spacing:1px}
+.ttype.read{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.2)}
+.ttype.watch{background:rgba(160,170,184,.08);color:var(--silver);border:1px solid rgba(160,170,184,.2)}
+.ttype.do{background:rgba(232,201,122,.08);color:var(--gold2);border:1px solid rgba(232,201,122,.2)}
+.ttype.reflect{background:rgba(255,255,255,.04);color:var(--text2);border:1px solid var(--border)}
+.ritem{display:flex;align-items:center;gap:9px;padding:7px 11px;background:var(--bg3);border:1px solid var(--border);margin-bottom:4px;font-size:12px;font-weight:300}
+.rname{flex:1}
+.rtype{font-family:'Space Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:1px}
+.comp{margin:24px 0;padding:18px;background:var(--bg2);border:1px solid var(--border2)}
+.clbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:2px;margin-bottom:10px}
+.citem{display:flex;align-items:flex-start;gap:9px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;font-weight:300;line-height:1.5}
+.citem:last-child{border-bottom:none}
+.cdot{width:6px;height:6px;border:1px solid var(--text2);flex-shrink:0;margin-top:5px;transition:all .2s}
+.citem.done .cdot{background:var(--gold);border-color:var(--gold)}
+.citem.done span{text-decoration:line-through;color:var(--text2)}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--bg2);border:1px solid var(--border2);padding:12px 18px;font-family:'Space Mono',monospace;font-size:11px;color:var(--gold);transform:translateY(80px);opacity:0;transition:all .4s;z-index:999;max-width:260px}
+.toast.show{transform:translateY(0);opacity:1}
+.ttitle{font-size:13px;margin-bottom:2px}
+.tsub{color:var(--text2);font-size:9px}
+footer{text-align:center;padding:36px 0;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-top:1px solid var(--border);margin-top:56px;letter-spacing:2px}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="hdr">
+  <div class="logo">The <span>Invisible</span> Edge</div>
+  <div class="xpwrap">
+    <div class="xpmeta"><span class="lv" id="lvlbl">RANK 0 — UNFORMED</span><span id="xplbl">0 / 300 XP</span></div>
+    <div class="xptrack"><div class="xpfill" id="xpfill" style="width:0%"></div></div>
+  </div>
+  <div class="hdrstats">
+    <div class="hstat"><span class="hval" id="totxp">0</span><span class="hlbl">TOTAL XP</span></div>
+    <div class="hstat"><span class="hval" id="tdone">0</span><span class="hlbl">HABITS</span></div>
+    <div class="hstat"><span class="hval" id="pdone">0</span><span class="hlbl">PILLARS</span></div>
+  </div>
+  <button class="resetbtn" onclick="confirmReset()">RESET</button>
+</div></div></header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="herotag">The Skills Nobody Teaches</div>
+    <h1>Master The<br><em>Invisible</em></h1>
+    <p>The skills that separate people who are good from people who are unforgettable. Build them daily. Stack them for life.</p>
+  </div>
+  <div class="rankwrap">
+    <div class="rpill" id="r0">UNFORMED</div><div class="rpill" id="r1">AWARE</div>
+    <div class="rpill" id="r2">STUDENT</div><div class="rpill" id="r3">PRACTITIONER</div>
+    <div class="rpill" id="r4">OPERATOR</div><div class="rpill" id="r5">SOVEREIGN</div>
+  </div>
+  <div class="achiev">
+    <div class="badge" id="b0"><span class="bicon">🔥</span><div><span class="bname">First Step</span><span class="bdesc">Complete first task</span></div></div>
+    <div class="badge" id="b1"><span class="bicon">📖</span><div><span class="bname">Scholar</span><span class="bdesc">Finish 5 read tasks</span></div></div>
+    <div class="badge" id="b2"><span class="bicon">🪞</span><div><span class="bname">Self-Aware</span><span class="bdesc">Complete self-knowledge pillar</span></div></div>
+    <div class="badge" id="b3"><span class="bicon">🎨</span><div><span class="bname">Aesthetic</span><span class="bdesc">Complete style pillar</span></div></div>
+    <div class="badge" id="b4"><span class="bicon">⚡</span><div><span class="bname">Sharp Mind</span><span class="bdesc">Reach Rank 3</span></div></div>
+    <div class="badge" id="b5"><span class="bicon">👑</span><div><span class="bname">Sovereign</span><span class="bdesc">Complete all pillars</span></div></div>
+  </div>
+  <div class="pnav" id="pnav">
+    <button class="pbtn active" onclick="showPillar('p0')">🧠<br>HOW TO THINK</button>
+    <button class="pbtn" onclick="showPillar('p1')">🧬<br>PSYCHOLOGY</button>
+    <button class="pbtn" onclick="showPillar('p2')">🎙<br>INFLUENCE</button>
+    <button class="pbtn" onclick="showPillar('p3')">🪞<br>SELF-KNOWLEDGE</button>
+    <button class="pbtn" onclick="showPillar('p4')">🤝<br>PRESENCE</button>
+    <button class="pbtn" onclick="showPillar('p5')">🎨<br>STYLE</button>
+    <button class="pbtn" onclick="showPillar('p6')">🏛<br>CHARACTER</button>
+    <button class="pbtn" onclick="showPillar('p7')">⚡<br>LEARN FASTER</button>
+  </div>
+  <div id="p0" class="pillar active"></div>
+  <div id="p1" class="pillar"></div>
+  <div id="p2" class="pillar"></div>
+  <div id="p3" class="pillar"></div>
+  <div id="p4" class="pillar"></div>
+  <div id="p5" class="pillar"></div>
+  <div id="p6" class="pillar"></div>
+  <div id="p7" class="pillar"></div>
+</main>
+
+<div class="toast" id="toast"><div class="ttitle" id="ttitle">+XP</div><div class="tsub" id="tsub">Keep going.</div></div>
+<footer><div class="wrap">THE INVISIBLE EDGE — BUILD WHAT OTHERS CANNOT SEE</div></footer>
+
+<script>
+const D={
+p0:{icon:"🧠",title:"How To Think",sub:"Most people react. Thinkers respond. This pillar rewires how you process decisions, people, and problems.",xp:300,skills:[
+  {id:"p0s0",title:"Mental Models",sub:"The operating system of your mind",quote:"The man who has a hammer sees every problem as a nail. Collect more tools.",why:"Mental models let you see patterns others miss. Munger built Berkshire Hathaway on this alone.",daily:"Before any decision today — ask: what mental model applies here?",
+   tasks:[{type:"read",text:"Poor Charlie's Almanack — 20 pages daily, focus on the 25 mental models section"},{type:"watch",text:"Farnam Street — Mental Models YouTube series"},{type:"do",text:"Write 3 decisions you made today. Which model explains each?"},{type:"do",text:"Pick one model (inversion, second-order thinking) — apply it for a full week"},{type:"reflect",text:"Where did your thinking fail this week? What model would have helped?"}],
+   resources:[{i:"📘",n:"Poor Charlie's Almanack",t:"BOOK"},{i:"📘",n:"The Great Mental Models Vol 1 — Parrish",t:"BOOK"},{i:"▶",n:"Farnam Street — Mental Models",t:"YOUTUBE"},{i:"🌐",n:"fs.blog",t:"WEBSITE FREE"}]},
+  {id:"p0s1",title:"First Principles Thinking",sub:"Strip everything to its base truth",quote:"Reason from first principles rather than by analogy. — Elon Musk",why:"Analogical thinking copies the past. First principles builds the future. Jobs used this to kill the keyboard.",daily:"Take one belief — ask why 5 times until you hit bedrock.",
+   tasks:[{type:"watch",text:"Simon Sinek — How Great Leaders Inspire Action (TED)"},{type:"do",text:"Pick any industry — break to first principles: what problem does it actually solve?"},{type:"do",text:"Daily: take one assumption you made and question it completely"},{type:"reflect",text:"Where are you thinking by analogy in your life right now?"}],
+   resources:[{i:"▶",n:"Simon Sinek — Start With Why TED",t:"YOUTUBE"},{i:"▶",n:"Veritasium — How to Think",t:"YOUTUBE"},{i:"📘",n:"Zero to One — Peter Thiel",t:"BOOK"}]},
+  {id:"p0s2",title:"Decision Making",sub:"How to act when you don't have all the information",quote:"Focus on the quality of your decision process, not the outcomes.",why:"Life is probabilistic. People who decide well repeatedly think in bets, not certainties.",daily:"Rate your confidence % on one decision today. Track if you were right.",
+   tasks:[{type:"read",text:"Thinking Fast and Slow — Kahneman (Part 1 first)"},{type:"do",text:"Decision journal — one entry daily: what did I decide, why, what do I expect?"},{type:"watch",text:"Kahneman — Nobel Prize lecture on YouTube"},{type:"reflect",text:"One recurring decision you make poorly. What bias is driving it?"}],
+   resources:[{i:"📘",n:"Thinking Fast and Slow — Kahneman",t:"BOOK"},{i:"📘",n:"Seeking Wisdom — Peter Bevelin",t:"BOOK"}]}
+],competency:["I can name 5 mental models with real examples","I apply first principles on at least one problem per week","I keep a decision journal","I can identify which bias caused my last bad decision"]},
+
+p1:{icon:"🧬",title:"Human Psychology",sub:"You guide your friends naturally. This pillar makes that instinct precise and systematic.",xp:300,skills:[
+  {id:"p1s0",title:"The 6 Principles of Influence",sub:"Why people say yes — and how to use it ethically",quote:"The best way to influence people is to genuinely understand what they want.",why:"Cialdini spent 35 years studying this. Every negotiation, sale, and relationship runs on these principles.",daily:"Spot one of the 6 principles in the real world today.",
+   tasks:[{type:"read",text:"Influence — Robert Cialdini (one chapter per day)"},{type:"do",text:"After each chapter — write one real-world example you've personally experienced"},{type:"do",text:"Watch one advertisement. Identify which principles it uses."},{type:"reflect",text:"Which principle do others use on you most effectively? Why?"}],
+   resources:[{i:"📘",n:"Influence — Robert Cialdini",t:"BOOK START HERE"},{i:"📘",n:"Pre-Suasion — Robert Cialdini",t:"BOOK"}]},
+  {id:"p1s1",title:"Reading People",sub:"Understand what someone means before they finish speaking",quote:"The most important thing in communication is hearing what isn't said. — Drucker",why:"People tell you everything with their body. Most never learn to listen to it.",daily:"In every conversation — observe body language first, words second.",
+   tasks:[{type:"read",text:"The Laws of Human Nature — Robert Greene"},{type:"watch",text:"Body Language — Alan Pease full lecture YouTube"},{type:"do",text:"In next 3 conversations — watch feet direction, eye contact, crossed arms"},{type:"do",text:"After a conversation — write: what was the person feeling vs what they said?"},{type:"reflect",text:"Who in your life do you misread most often? Why?"}],
+   resources:[{i:"📘",n:"The Laws of Human Nature — Greene",t:"BOOK"},{i:"▶",n:"Alan Pease — Body Language YouTube",t:"YOUTUBE"},{i:"📘",n:"What Every Body Is Saying — Navarro",t:"BOOK"}]},
+  {id:"p1s2",title:"Empathy as Strategy",sub:"Not weakness — the highest leverage tool in human relations",quote:"You can make more friends in two months by becoming interested in others than in two years trying to get them interested in you.",why:"Empathy is why your friends come to you. It's also what makes great leaders and founders.",daily:"In one conversation — understand the other person completely before forming your response.",
+   tasks:[{type:"read",text:"How To Win Friends and Influence People — Dale Carnegie"},{type:"do",text:"In next conversation — ask one follow-up question before sharing your own view"},{type:"do",text:"Practice: summarize what someone said back to them before responding"},{type:"reflect",text:"When do you struggle most to be empathetic? What triggers your defensiveness?"}],
+   resources:[{i:"📘",n:"How to Win Friends and Influence People",t:"BOOK"},{i:"📘",n:"Never Split the Difference — Chris Voss",t:"BOOK"},{i:"▶",n:"Chris Voss — Negotiation YouTube",t:"YOUTUBE"}]}
+],competency:["I can explain Cialdini's 6 principles with real examples","I can read basic body language in live conversation","I ask follow-up questions before forming my response","I can identify what someone needs vs what they're saying"]},
+
+p2:{icon:"🎙",title:"Storytelling & Influence",sub:"Jobs didn't sell computers. He sold vision. This pillar teaches you to move people with words, silence, and structure.",xp:250,skills:[
+  {id:"p2s0",title:"The Jobs Method",sub:"How to deliver information so people feel it",quote:"The most powerful person in the world is the storyteller.",why:"Jobs' keynotes were theater. Every pause, every word engineered for impact.",daily:"Watch one Jobs clip. Pick one technique. Use it in conversation today.",
+   tasks:[{type:"watch",text:"Steve Jobs — iPhone 2007 keynote full. Take notes on structure."},{type:"watch",text:"Carmine Gallo — Talk Like TED YouTube"},{type:"do",text:"Find Jobs' 3-part structure: setup → conflict → resolution in 3 keynotes"},{type:"do",text:"Tell someone a story today: context → tension → resolution. Notice their reaction."},{type:"reflect",text:"Where do you bury the lede in your own communication?"}],
+   resources:[{i:"▶",n:"Jobs iPhone Keynote 2007",t:"YOUTUBE"},{i:"📘",n:"Presentation Secrets of Steve Jobs — Gallo",t:"BOOK"},{i:"▶",n:"Carmine Gallo — Talk Like TED",t:"YOUTUBE"}]},
+  {id:"p2s1",title:"Voice, Pace & Silence",sub:"What you say matters less than how you say it",quote:"No word was ever as effective as a rightly timed pause.",why:"Vocal authority is learnable. Record yourself — you'll hear exactly what to fix.",daily:"Record yourself speaking 2 minutes. Listen back. Fix one thing.",
+   tasks:[{type:"do",text:"Record yourself speaking 2 minutes — listen back cold"},{type:"do",text:"Identify: filler words, pace too fast, volume drops at sentence ends"},{type:"watch",text:"Charisma on Command — How To Speak With Confidence YouTube"},{type:"do",text:"Read a paragraph aloud — slowly, deliberate pauses. Record it."},{type:"do",text:"In next 3 conversations — pause 2 seconds before answering important questions"}],
+   resources:[{i:"▶",n:"Charisma on Command — Voice & Confidence",t:"YOUTUBE"},{i:"▶",n:"Julian Treasure — How to Speak TED",t:"YOUTUBE"}]},
+  {id:"p2s2",title:"Writing That Moves People",sub:"Clear writing is clear thinking made visible",quote:"If you can't explain it simply, you don't understand it well enough.",why:"In a world of noise, clear writing with conviction cuts through everything.",daily:"Write 3 sentences about something you learned today. Make each one land.",
+   tasks:[{type:"read",text:"On Writing Well — William Zinsser (first 5 chapters)"},{type:"do",text:"Write a 1-paragraph summary of your day — zero filler words"},{type:"do",text:"Take a paragraph you wrote — cut it 30%. Make it stronger."},{type:"reflect",text:"Where do you over-explain in conversation? Why do you feel the need to?"}],
+   resources:[{i:"📘",n:"On Writing Well — William Zinsser",t:"BOOK"}]}
+],competency:["I can identify Jobs' narrative structure in any presentation","I've recorded myself and fixed at least 2 vocal habits","I use deliberate pauses in conversation","I can write a compelling 1-paragraph summary of any topic"]},
+
+p3:{icon:"🪞",title:"Self-Knowledge",sub:"You said learning about yourself excites you. This pillar turns that into something that pays — in every sense.",xp:250,skills:[
+  {id:"p3s0",title:"Know Your Defaults",sub:"How you behave when no one is watching — including yourself",quote:"Knowing yourself is the beginning of all wisdom. — Aristotle",why:"Your defaults are running your life right now. Most people never examine them.",daily:"At day's end — what did I do on autopilot today that I didn't consciously choose?",
+   tasks:[{type:"do",text:"Take the 16Personalities test (16personalities.com) — read the full result"},{type:"reflect",text:"Write 3 situations where you behaved in a way that surprised yourself. What was the pattern?"},{type:"read",text:"The Untethered Soul — Michael Singer (one chapter per day)"},{type:"do",text:"Ask 3 people who know you well: what do I do that I probably don't notice?"}],
+   resources:[{i:"🌐",n:"16Personalities Test",t:"FREE TOOL"},{i:"📘",n:"The Untethered Soul — Michael Singer",t:"BOOK"},{i:"📘",n:"Man's Search for Meaning — Viktor Frankl",t:"BOOK"}]},
+  {id:"p3s1",title:"Stoicism as Operating System",sub:"Ancient tech for modern chaos",quote:"You have power over your mind, not outside events. Realize this and you will find strength. — Marcus Aurelius",why:"Stoicism isn't about suppressing emotion. It's about not being controlled by what you can't control.",daily:"Morning: name one thing outside your control today. Let it go before breakfast.",
+   tasks:[{type:"read",text:"Meditations — Marcus Aurelius (1-2 pages every morning, not in bulk)"},{type:"do",text:"List today's stressors as 'in my control' vs 'not in my control'"},{type:"watch",text:"Ryan Holiday — Stoicism explained YouTube"},{type:"reflect",text:"Where are you suffering from something entirely outside your control?"}],
+   resources:[{i:"📘",n:"Meditations — Marcus Aurelius",t:"BOOK START HERE"},{i:"📘",n:"The Obstacle is the Way — Ryan Holiday",t:"BOOK"},{i:"▶",n:"Ryan Holiday — Stoicism YouTube",t:"YOUTUBE"}]}
+],competency:["I can describe my 3 core default behaviors under stress","I read Meditations daily — even 1 page","I practice the dichotomy of control","I've asked someone I trust for honest feedback and acted on it"]},
+
+p4:{icon:"🤝",title:"Social Presence",sub:"The way you walk into a room is a message. This pillar makes that message deliberate.",xp:250,skills:[
+  {id:"p4s0",title:"Body Language Mastery",sub:"You communicate before you speak",quote:"What you do speaks so loudly that I cannot hear what you say. — Emerson",why:"93% of communication is non-verbal. Most people ignore 93% of every conversation.",daily:"Shoulders back. Feet grounded. Chin level. Hold it right now.",
+   tasks:[{type:"watch",text:"Alan Pease — Body Language full lecture YouTube"},{type:"do",text:"Film yourself walking into a room — watch it back. What does it say?"},{type:"do",text:"For one full day — notice every time you break eye contact first. Count it."},{type:"do",text:"Practice a firm but relaxed handshake — ask a friend for honest feedback"},{type:"do",text:"Power pose 2 minutes before any important interaction this week"}],
+   resources:[{i:"▶",n:"Alan Pease — Body Language YouTube",t:"YOUTUBE"},{i:"▶",n:"Amy Cuddy — Power Pose TED",t:"YOUTUBE"},{i:"📘",n:"Definitive Book of Body Language — Pease",t:"BOOK"}]},
+  {id:"p4s1",title:"Charisma & First Impressions",sub:"The first 7 seconds set everything",quote:"You never get a second chance to make a first impression.",why:"Charisma is not personality — it's a learnable set of behaviors.",daily:"In your next interaction — smile slightly before speaking. Watch what changes.",
+   tasks:[{type:"watch",text:"Charisma on Command — How to be Instantly Likeable YouTube"},{type:"do",text:"Study 3 interviews of people you find magnetic — list exactly what they do"},{type:"do",text:"Introduce yourself to one new person this week using what you've learned"},{type:"reflect",text:"What is your default energy when meeting someone new — closed or open?"}],
+   resources:[{i:"▶",n:"Charisma on Command — YouTube Channel",t:"YOUTUBE"},{i:"📘",n:"The Charisma Myth — Olivia Fox Cabane",t:"BOOK"}]}
+],competency:["I maintain comfortable eye contact in conversation","My posture is deliberate — not accidental","I watched myself on video and fixed one body language habit","I can walk into a room with intentional presence"]},
+
+p5:{icon:"🎨",title:"Style & Aesthetics",sub:"How you look is a signal. It tells people who you are before you speak. Make the signal intentional.",xp:200,skills:[
+  {id:"p5s0",title:"Dress — The Foundation",sub:"Start with your skin undertone. Build from there.",quote:"Dress for who you want to become, not who you are right now.",why:"Style isn't vanity. It's communication. Every outfit sends a signal — you choose what that signal says.",daily:"Before getting dressed — what does this outfit communicate? Is that what I want to say today?",
+   tasks:[{type:"do",text:"Find your skin undertone — search 'how to find skin undertone' — 5 minutes. Changes everything."},{type:"watch",text:"Alex Costa — Men's Style Basics YouTube series"},{type:"watch",text:"He Spoke Style — Capsule Wardrobe for Men YouTube"},{type:"do",text:"Audit your wardrobe: keep what fits perfectly, donate everything that doesn't"},{type:"do",text:"Learn the neutral base rule: 1 neutral + 1 accent color per outfit"}],
+   resources:[{i:"▶",n:"Alex Costa — Men's Style Basics",t:"YOUTUBE"},{i:"▶",n:"He Spoke Style — Capsule Wardrobe",t:"YOUTUBE"}]},
+  {id:"p5s1",title:"Fragrance",sub:"The invisible accessory people remember longest",quote:"Smell is the sense closest to memory. What you smell like stays long after you leave.",why:"Fragrance is the most underestimated element of presence. Done right — people remember you by scent.",daily:"Read one fragrance review on Fragrantica. Learn one new note family.",
+   tasks:[{type:"do",text:"Visit Fragrantica.com — read about the 4 fragrance families (woody, citrus, oriental, floral)"},{type:"do",text:"Go smell 3 fragrances in a store — identify top, middle, base notes in each"},{type:"watch",text:"Real Men Real Style — Fragrance Guide for Men YouTube"},{type:"do",text:"Rule: never buy unsmelled — test on skin, wait 30 minutes"}],
+   resources:[{i:"🌐",n:"Fragrantica.com",t:"WEBSITE FREE"},{i:"▶",n:"Real Men Real Style — Fragrance Guide",t:"YOUTUBE"}]},
+  {id:"p5s2",title:"Aesthetic Eye — Design, Cars, Space",sub:"Train your eye for what is good",quote:"Design is not just what it looks like. Design is how it works. — Jobs",why:"Aesthetic sense is pattern recognition for beauty. It applies to business, products, and people.",daily:"Look at one designed object — ask: what decision made this? Why does it work?",
+   tasks:[{type:"watch",text:"Donut Media — Up To Speed series (car history + design + culture)"},{type:"watch",text:"Petrolicious — short films on iconic cars YouTube"},{type:"do",text:"Walk through any Apple Store — study what makes it feel premium"},{type:"reflect",text:"What objects do you find genuinely beautiful? What do they have in common?"}],
+   resources:[{i:"▶",n:"Donut Media — YouTube",t:"YOUTUBE"},{i:"▶",n:"Petrolicious — YouTube",t:"YOUTUBE"},{i:"▶",n:"Abstract: The Art of Design — Netflix",t:"STREAMING"}]}
+],competency:["I know my skin undertone and dress accordingly","I own at least one fragrance chosen intentionally after testing","My wardrobe has been audited — only things that fit stay","I can articulate why something looks good or bad"]},
+
+p6:{icon:"🏛",title:"Character & Responsibility",sub:"Skills without character are dangerous. This pillar builds the foundation everything else stands on.",xp:300,skills:[
+  {id:"p6s0",title:"Discipline as Identity",sub:"Not motivation. Not willpower. Identity.",quote:"We are what we repeatedly do. Excellence is not an act but a habit. — Aristotle",why:"Motivation is weather. Discipline is infrastructure. Build the infrastructure.",daily:"Do one thing today you said you would — especially if you don't feel like it.",
+   tasks:[{type:"read",text:"Atomic Habits — James Clear (first 4 chapters this week)"},{type:"do",text:"Identify one thing avoided for 2+ weeks. Do it today. No conditions."},{type:"do",text:"Pick one 5-minute daily habit — do it every day for 21 days. Track it here."},{type:"reflect",text:"Who do you want to be in 5 years? What does that person do daily that you currently don't?"}],
+   resources:[{i:"📘",n:"Atomic Habits — James Clear",t:"BOOK"},{i:"📘",n:"Can't Hurt Me — David Goggins",t:"BOOK"},{i:"▶",n:"David Goggins — Impact Theory Interview",t:"YOUTUBE"}]},
+  {id:"p6s1",title:"Leading Without a Title",sub:"Leadership is influence, not authority",quote:"Before you are a leader, success is about growing yourself. After, it's about growing others.",why:"You already lead your friends informally. This pillar makes that instinct structured and scalable.",daily:"In one interaction today — ask what the other person needs instead of what you need.",
+   tasks:[{type:"read",text:"The 21 Irrefutable Laws of Leadership — John Maxwell"},{type:"watch",text:"Simon Sinek — Why Good Leaders Make You Feel Safe TED"},{type:"do",text:"Next time a friend comes with a problem — resist advice for 5 minutes. Just ask questions."},{type:"reflect",text:"When did you last put someone else's growth before your own convenience?"}],
+   resources:[{i:"📘",n:"21 Irrefutable Laws of Leadership — Maxwell",t:"BOOK"},{i:"▶",n:"Simon Sinek — Why Leaders Make You Feel Safe",t:"YOUTUBE"}]},
+  {id:"p6s2",title:"Radical Ownership",sub:"Nothing is someone else's fault. Everything is your response.",quote:"Own everything in your world. There are no bad teams, only bad leaders. — Jocko",why:"This mindset separates people who grow from people who stagnate. No exceptions.",daily:"One thing went wrong today. Before blaming anything external — what was my part?",
+   tasks:[{type:"read",text:"Extreme Ownership — Jocko Willink (Chapter 1 this week)"},{type:"do",text:"Take one situation where you blamed someone else. Rewrite it as if you had full ownership."},{type:"do",text:"7-day challenge: never complain about something you haven't tried to fix."},{type:"reflect",text:"What area of your life have you been outsourcing responsibility?"}],
+   resources:[{i:"📘",n:"Extreme Ownership — Jocko Willink",t:"BOOK"},{i:"▶",n:"Jocko Willink — Discipline Equals Freedom",t:"YOUTUBE"}]}
+],competency:["I have one daily habit unbroken for 21 days","I've read at least one recommended book fully","I completed the 7-day no-complaining challenge","I can point to one situation where I took ownership instead of blame"]},
+
+p7:{icon:"⚡",title:"Learn Faster",sub:"You're multi-domain and lose interest without visible results. This pillar rewires how you absorb everything.",xp:250,skills:[
+  {id:"p7s0",title:"The Feynman Technique",sub:"If you can't explain it simply, you don't own it yet",quote:"The first principle is that you must not fool yourself — and you are the easiest person to fool.",why:"Most learning is passive recognition. Feynman forces active reconstruction. Night and day difference.",daily:"After learning anything today — explain it out loud as if teaching a 10-year-old.",
+   tasks:[{type:"watch",text:"Justin Sung — How I Learn 10x Faster YouTube (best learning channel available)"},{type:"do",text:"Pick any topic from this week — explain out loud in under 2 minutes. Record yourself."},{type:"do",text:"Where you stumble = exactly where your gaps are. Go fix those specifically."},{type:"do",text:"Apply this to one cybersecurity concept from your other roadmap this week"}],
+   resources:[{i:"▶",n:"Justin Sung — Learn Faster YouTube",t:"YOUTUBE START HERE"},{i:"▶",n:"Thomas Frank — Study Techniques",t:"YOUTUBE"}]},
+  {id:"p7s1",title:"Spaced Repetition & Memory",sub:"Stop forgetting what you learn",quote:"Forgetting is not failure. Failing to review is.",why:"Your brain forgets 70% of new info within 24 hours. Spaced repetition defeats this completely.",daily:"Open Anki — do your daily review cards. 10 minutes maximum.",
+   tasks:[{type:"do",text:"Download Anki — ankiweb.net (free desktop app)"},{type:"do",text:"Create 5 flashcards for concepts from this week's learning — any topic"},{type:"do",text:"Set a daily Anki review reminder — 10 minutes before bed"},{type:"watch",text:"Ali Abdaal — How to Use Anki Effectively YouTube"}],
+   resources:[{i:"🔧",n:"Anki — ankiweb.net",t:"FREE APP"},{i:"▶",n:"Ali Abdaal — Anki Tutorial",t:"YOUTUBE"}]},
+  {id:"p7s2",title:"Focus & Calm Your Brain",sub:"Your brain isn't broken — it's untrained",quote:"You do not rise to the level of your goals. You fall to the level of your systems.",why:"Motivation dies without visible results and focus is hard. This is fixable — not a personality trait.",daily:"Box breathing: 4 in, hold 4, out 4, hold 4. Once before any important work session.",
+   tasks:[{type:"do",text:"Box breathing — do it right now. 4 cycles. Notice what changes."},{type:"watch",text:"Andrew Huberman — How to Focus YouTube (neuroscience, not motivation fluff)"},{type:"do",text:"Try one 25-minute Pomodoro session today — no phone, one task only"},{type:"do",text:"Waking Up app — try the free intro meditation (Sam Harris). 10 minutes."},{type:"reflect",text:"What environment puts you in best focus? Recreate it deliberately."}],
+   resources:[{i:"▶",n:"Andrew Huberman — Focus Protocol",t:"YOUTUBE"},{i:"🔧",n:"Waking Up App — Sam Harris",t:"FREE TRIAL"},{i:"▶",n:"Ali Abdaal — Pomodoro Technique",t:"YOUTUBE"}]}
+],competency:["I use Feynman technique on at least one topic per week","Anki is part of my daily routine — even 5 minutes","I've done box breathing consistently for 7 days","I can focus 25 minutes without checking my phone"]}
+};
+
+const RANKS=[{min:0,name:"UNFORMED"},{min:300,name:"AWARE"},{min:600,name:"STUDENT"},{min:1000,name:"PRACTITIONER"},{min:1400,name:"OPERATOR"},{min:1800,name:"SOVEREIGN"}];
+let S=load();
+function load(){try{const s=localStorage.getItem('invisible_v2');return s?JSON.parse(s):{t:{},c:{}}}catch(e){return{t:{},c:{}}}}
+function save(){localStorage.setItem('invisible_v2',JSON.stringify(S))}
+function getTotalXP(){let xp=0;Object.entries(D).forEach(([pid,p])=>{p.skills.forEach(s=>{const tot=s.tasks.length,dn=s.tasks.filter((_,i)=>S.t[s.id+'_'+i]).length;xp+=Math.floor((dn/tot)*(p.xp/p.skills.length));});});return xp;}
+function getRank(xp){for(let i=RANKS.length-1;i>=0;i--){if(xp>=RANKS[i].min)return i;}return 0;}
+function updateHeader(){
+  const xp=getTotalXP(),ri=getRank(xp),r=RANKS[ri],nx=RANKS[Math.min(ri+1,RANKS.length-1)];
+  const pct=ri===RANKS.length-1?100:Math.round(((xp-r.min)/(nx.min-r.min))*100);
+  document.getElementById('lvlbl').textContent='RANK '+ri+' — '+r.name;
+  document.getElementById('xplbl').textContent=xp+' / '+nx.min+' XP';
+  document.getElementById('xpfill').style.width=pct+'%';
+  document.getElementById('totxp').textContent=xp;
+  for(let i=0;i<RANKS.length;i++){const e=document.getElementById('r'+i);if(e)e.classList.toggle('lit',i<=ri);}
+  let td=0,pd=0;
+  Object.entries(D).forEach(([pid,p])=>{let pa=true;p.skills.forEach(s=>{const dn=s.tasks.filter((_,i)=>S.t[s.id+'_'+i]).length;td+=dn;if(dn<s.tasks.length)pa=false;});if(pa)pd++;});
+  document.getElementById('tdone').textContent=td;
+  document.getElementById('pdone').textContent=pd;
+  let reads=0;Object.values(D).forEach(p=>p.skills.forEach(s=>s.tasks.forEach((t,i)=>{if(t.type==='read'&&S.t[s.id+'_'+i])reads++;})));
+  const p3done=D.p3.skills.every(s=>s.tasks.every((_,i)=>S.t[s.id+'_'+i]));
+  const p5done=D.p5.skills.every(s=>s.tasks.every((_,i)=>S.t[s.id+'_'+i]));
+  const alldone=Object.values(D).every(p=>p.skills.every(s=>s.tasks.every((_,i)=>S.t[s.id+'_'+i])));
+  if(td>0)document.getElementById('b0').classList.add('earned');
+  if(reads>=5)document.getElementById('b1').classList.add('earned');
+  if(p3done)document.getElementById('b2').classList.add('earned');
+  if(p5done)document.getElementById('b3').classList.add('earned');
+  if(ri>=3)document.getElementById('b4').classList.add('earned');
+  if(alldone)document.getElementById('b5').classList.add('earned');
+}
+function toast(t,s){const e=document.getElementById('toast');document.getElementById('ttitle').textContent=t;document.getElementById('tsub').textContent=s;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3000);}
+function toggleTask(sid,idx){const k=sid+'_'+idx;S.t[k]=!S.t[k];save();renderAll();updateHeader();if(S.t[k])toast('+XP EARNED','One habit closer to mastery.');}
+function toggleSkill(sid,pid){const sk=D[pid].skills.find(s=>s.id===sid);const all=sk.tasks.every((_,i)=>S.t[sid+'_'+i]);sk.tasks.forEach((_,i)=>{S.t[sid+'_'+i]=!all;});save();renderAll();updateHeader();if(!all)toast('"'+sk.title+'" MASTERED','Pillar progress updated.');}
+function toggleOpen(sid){const k='o_'+sid;S.t[k]=!S.t[k];save();const c=document.getElementById('c_'+sid);if(c)c.classList.toggle('open',!!S.t[k]);}
+function toggleComp(pid,idx){const k=pid+'_c_'+idx;S.c[k]=!S.c[k];save();renderAll();}
+function showPillar(pid){document.querySelectorAll('.pillar').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));document.getElementById(pid).classList.add('active');const idx=Object.keys(D).indexOf(pid);document.querySelectorAll('.pbtn')[idx].classList.add('active');}
+function confirmReset(){if(confirm('Reset ALL progress?')){S={t:{},c:{}};save();renderAll();updateHeader();toast('RESET','Journey begins again.');}}
+function renderAll(){
+  Object.entries(D).forEach(([pid,p])=>{
+    const el=document.getElementById(pid);if(!el)return;
+    let tot=0,dn=0;p.skills.forEach(s=>{tot+=s.tasks.length;dn+=s.tasks.filter((_,i)=>S.t[s.id+'_'+i]).length;});
+    const pp=tot>0?Math.round((dn/tot)*100):0;
+    let h='<div class="plrhdr"><div class="plricon">'+p.icon+'</div><div class="plrinfo"><h2>'+p.title+'</h2><p>'+p.sub+'</p></div><div class="plrxp"><span>'+p.xp+' XP</span>PILLAR REWARD<br><span style="font-size:12px;color:var(--silver)">'+pp+'% COMPLETE</span></div></div>';
+    p.skills.forEach((s,si)=>{
+      const sd=s.tasks.filter((_,i)=>S.t[s.id+'_'+i]).length,all=sd===s.tasks.length,open=!!S.t['o_'+s.id],pct=Math.round((sd/s.tasks.length)*100);
+      h+='<div class="scard'+(all?' completed':'')+(open?' open':'')+'" id="c_'+s.id+'">';
+      h+='<div class="shead" onclick="toggleOpen(\''+s.id+'\')"><span class="snum">0'+(si+1)+'</span><div class="stitlew"><span class="stitle" style="color:'+(all?'var(--gold)':'var(--white)')+'">'+s.title+'</span><span class="ssub">'+s.sub+'</span></div><div class="sprogw"><div class="spbar"><div class="spfill" style="width:'+pct+'%"></div></div><span class="sxp">'+sd+'/'+s.tasks.length+'</span></div><div class="scheck'+(all?' done':'')+'" onclick="event.stopPropagation();toggleSkill(\''+s.id+'\',\''+pid+'\')">'+(all?'✓':'')+'</div><span class="sexp">▼</span></div>';
+      h+='<div class="sbody"><div class="squote">&ldquo;'+s.quote+'&rdquo;</div><div class="mbox"><label>WHY THIS MATTERS</label><p>'+s.why+'</p></div><div class="dailybox"><div class="dlbl">DAILY PRACTICE</div><div class="dtxt">'+s.daily+'</div></div><div class="tlbl">TASKS &amp; HABITS</div>';
+      s.tasks.forEach((t,ti)=>{const done=S.t[s.id+'_'+ti];h+='<div class="titem'+(done?' done':'')+'" onclick="toggleTask(\''+s.id+'\','+ti+')"><div class="tcb">'+(done?'✓':'')+'</div><span class="ttxt">'+t.text+'</span><span class="ttype '+t.type+'">'+t.type.toUpperCase()+'</span></div>';});
+      if(s.resources){h+='<div class="tlbl" style="margin-top:12px">RESOURCES</div>';s.resources.forEach(r=>{h+='<div class="ritem"><span>'+r.i+'</span><span class="rname">'+r.n+'</span><span class="rtype">'+r.t+'</span></div>';});}
+      h+='</div></div>';
+    });
+    if(p.competency&&p.competency.length){h+='<div class="comp"><div class="clbl">PILLAR COMPETENCY CHECK</div>';p.competency.forEach((c,i)=>{const done=S.c[pid+'_c_'+i];h+='<div class="citem'+(done?' done':'')+'" onclick="toggleComp(\''+pid+'\','+i+')"><div class="cdot"></div><span>'+c+'</span></div>';});h+='</div>';}
+    el.innerHTML=h;
+  });
+  document.querySelectorAll('.pbtn').forEach((btn,idx)=>{const pid=Object.keys(D)[idx];const all=D[pid].skills.every(s=>s.tasks.every((_,i)=>S.t[s.id+'_'+i]));btn.classList.toggle('done',all);});
+}
+renderAll();updateHeader();
+</script>
+</body>
+</html>
