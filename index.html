@@ -26,6 +26,11 @@ header{border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:
 .hlbl{font-size:9px;color:var(--text2);letter-spacing:1px}
 .resetbtn{font-family:'Space Mono',monospace;font-size:9px;color:var(--text2);border:1px solid var(--border);background:transparent;padding:5px 10px;cursor:pointer;transition:all .2s;letter-spacing:1px}
 .resetbtn:hover{color:var(--red);border-color:var(--red)}
+.syncbadge{font-family:'Space Mono',monospace;font-size:9px;padding:5px 10px;border:1px solid var(--border);letter-spacing:1px;display:flex;align-items:center;gap:5px;transition:all .3s}
+.syncbadge.syncing{color:var(--gold);border-color:var(--border2)}
+.syncbadge.saved{color:var(--green);border-color:rgba(39,174,96,.35)}
+.syncbadge.error{color:var(--red);border-color:var(--red)}
+.syncbadge .sdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
 .hero{padding:50px 0 32px;text-align:center}
 .herotag{font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:4px;border:1px solid var(--border2);display:inline-block;padding:5px 16px;margin-bottom:18px}
 .hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,7vw,62px);font-weight:300;letter-spacing:4px;color:var(--white);line-height:1.1;margin-bottom:12px}
@@ -121,7 +126,8 @@ footer{text-align:center;padding:36px 0;font-family:'Space Mono',monospace;font-
     <div class="hstat"><span class="hval" id="tdone">0</span><span class="hlbl">HABITS</span></div>
     <div class="hstat"><span class="hval" id="pdone">0</span><span class="hlbl">PILLARS</span></div>
   </div>
-  <button class="resetbtn" onclick="confirmReset()">RESET</button>
+  <div class="syncbadge" id="syncbadge"><div class="sdot"></div><span id="synclbl">CONNECTING</span></div>
+  <button class="resetbtn" id="resetbtn">RESET</button>
 </div></div></header>
 
 <main class="wrap">
@@ -144,14 +150,14 @@ footer{text-align:center;padding:36px 0;font-family:'Space Mono',monospace;font-
     <div class="badge" id="b5"><span class="bicon">👑</span><div><span class="bname">Sovereign</span><span class="bdesc">Complete all pillars</span></div></div>
   </div>
   <div class="pnav" id="pnav">
-    <button class="pbtn active" onclick="showPillar('p0')">🧠<br>HOW TO THINK</button>
-    <button class="pbtn" onclick="showPillar('p1')">🧬<br>PSYCHOLOGY</button>
-    <button class="pbtn" onclick="showPillar('p2')">🎙<br>INFLUENCE</button>
-    <button class="pbtn" onclick="showPillar('p3')">🪞<br>SELF-KNOWLEDGE</button>
-    <button class="pbtn" onclick="showPillar('p4')">🤝<br>PRESENCE</button>
-    <button class="pbtn" onclick="showPillar('p5')">🎨<br>STYLE</button>
-    <button class="pbtn" onclick="showPillar('p6')">🏛<br>CHARACTER</button>
-    <button class="pbtn" onclick="showPillar('p7')">⚡<br>LEARN FASTER</button>
+    <button class="pbtn active" data-pillar="p0">🧠<br>HOW TO THINK</button>
+    <button class="pbtn" data-pillar="p1">🧬<br>PSYCHOLOGY</button>
+    <button class="pbtn" data-pillar="p2">🎙<br>INFLUENCE</button>
+    <button class="pbtn" data-pillar="p3">🪞<br>SELF-KNOWLEDGE</button>
+    <button class="pbtn" data-pillar="p4">🤝<br>PRESENCE</button>
+    <button class="pbtn" data-pillar="p5">🎨<br>STYLE</button>
+    <button class="pbtn" data-pillar="p6">🏛<br>CHARACTER</button>
+    <button class="pbtn" data-pillar="p7">⚡<br>LEARN FASTER</button>
   </div>
   <div id="p0" class="pillar active"></div>
   <div id="p1" class="pillar"></div>
@@ -274,8 +280,49 @@ p7:{icon:"⚡",title:"Learn Faster",sub:"You're multi-domain and lose interest w
 
 const RANKS=[{min:0,name:"UNFORMED"},{min:300,name:"AWARE"},{min:600,name:"STUDENT"},{min:1000,name:"PRACTITIONER"},{min:1400,name:"OPERATOR"},{min:1800,name:"SOVEREIGN"}];
 let S={t:{},c:{}};
-async function load(){try{const snap=await getDoc(DOC_REF);return snap.exists()?snap.data():{t:{},c:{}}}catch(e){return{t:{},c:{}}}}
-async function save(){try{await setDoc(DOC_REF,S);}catch(e){console.error('Save failed:',e);}}
+let saveTimer=null;
+
+function setSyncStatus(state){
+  const b=document.getElementById('syncbadge'),l=document.getElementById('synclbl');
+  if(!b||!l)return;
+  b.className='syncbadge '+state;
+  l.textContent=state==='syncing'?'SYNCING…':state==='saved'?'SYNCED':state==='error'?'SYNC ERROR':'CONNECTING';
+}
+
+async function loadFromFirebase(){
+  try{
+    setSyncStatus('syncing');
+    const snap=await getDoc(DOC_REF);
+    const data=snap.exists()?snap.data():{t:{},c:{}};
+    // ensure nested objects exist
+    if(!data.t)data.t={};
+    if(!data.c)data.c={};
+    setSyncStatus('saved');
+    return data;
+  }catch(e){
+    console.error('Load failed:',e);
+    setSyncStatus('error');
+    return{t:{},c:{}};
+  }
+}
+
+async function saveToFirebase(){
+  try{
+    setSyncStatus('syncing');
+    await setDoc(DOC_REF,{t:S.t,c:S.c});
+    setSyncStatus('saved');
+  }catch(e){
+    console.error('Save failed:',e);
+    setSyncStatus('error');
+  }
+}
+
+// Debounce saves — waits 800ms after last action before writing to Firestore
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveToFirebase,800);
+}
+
 function getTotalXP(){let xp=0;Object.entries(D).forEach(([pid,p])=>{p.skills.forEach(s=>{const tot=s.tasks.length,dn=s.tasks.filter((_,i)=>S.t[s.id+'_'+i]).length;xp+=Math.floor((dn/tot)*(p.xp/p.skills.length));});});return xp;}
 function getRank(xp){for(let i=RANKS.length-1;i>=0;i--){if(xp>=RANKS[i].min)return i;}return 0;}
 function updateHeader(){
@@ -317,18 +364,45 @@ function renderAll(){
     p.skills.forEach((s,si)=>{
       const sd=s.tasks.filter((_,i)=>S.t[s.id+'_'+i]).length,all=sd===s.tasks.length,open=!!S.t['o_'+s.id],pct=Math.round((sd/s.tasks.length)*100);
       h+='<div class="scard'+(all?' completed':'')+(open?' open':'')+'" id="c_'+s.id+'">';
-      h+='<div class="shead" onclick="toggleOpen(\''+s.id+'\')"><span class="snum">0'+(si+1)+'</span><div class="stitlew"><span class="stitle" style="color:'+(all?'var(--gold)':'var(--white)')+'">'+s.title+'</span><span class="ssub">'+s.sub+'</span></div><div class="sprogw"><div class="spbar"><div class="spfill" style="width:'+pct+'%"></div></div><span class="sxp">'+sd+'/'+s.tasks.length+'</span></div><div class="scheck'+(all?' done':'')+'" onclick="event.stopPropagation();toggleSkill(\''+s.id+'\',\''+pid+'\')">'+(all?'✓':'')+'</div><span class="sexp">▼</span></div>';
+      h+='<div class="shead" data-action="open" data-sid="'+s.id+'"><span class="snum">0'+(si+1)+'</span><div class="stitlew"><span class="stitle" style="color:'+(all?'var(--gold)':'var(--white)')+'">'+s.title+'</span><span class="ssub">'+s.sub+'</span></div><div class="sprogw"><div class="spbar"><div class="spfill" style="width:'+pct+'%"></div></div><span class="sxp">'+sd+'/'+s.tasks.length+'</span></div><div class="scheck'+(all?' done':'')+'" data-action="skill" data-sid="'+s.id+'" data-pid="'+pid+'">'+(all?'✓':'')+'</div><span class="sexp">▼</span></div>';
       h+='<div class="sbody"><div class="squote">&ldquo;'+s.quote+'&rdquo;</div><div class="mbox"><label>WHY THIS MATTERS</label><p>'+s.why+'</p></div><div class="dailybox"><div class="dlbl">DAILY PRACTICE</div><div class="dtxt">'+s.daily+'</div></div><div class="tlbl">TASKS &amp; HABITS</div>';
-      s.tasks.forEach((t,ti)=>{const done=S.t[s.id+'_'+ti];h+='<div class="titem'+(done?' done':'')+'" onclick="toggleTask(\''+s.id+'\','+ti+')"><div class="tcb">'+(done?'✓':'')+'</div><span class="ttxt">'+t.text+'</span><span class="ttype '+t.type+'">'+t.type.toUpperCase()+'</span></div>';});
+      s.tasks.forEach((t,ti)=>{const done=S.t[s.id+'_'+ti];h+='<div class="titem'+(done?' done':'')+'" data-action="task" data-sid="'+s.id+'" data-idx="'+ti+'"><div class="tcb">'+(done?'✓':'')+'</div><span class="ttxt">'+t.text+'</span><span class="ttype '+t.type+'">'+t.type.toUpperCase()+'</span></div>';});
       if(s.resources){h+='<div class="tlbl" style="margin-top:12px">RESOURCES</div>';s.resources.forEach(r=>{h+='<div class="ritem"><span>'+r.i+'</span><span class="rname">'+r.n+'</span><span class="rtype">'+r.t+'</span></div>';});}
       h+='</div></div>';
     });
-    if(p.competency&&p.competency.length){h+='<div class="comp"><div class="clbl">PILLAR COMPETENCY CHECK</div>';p.competency.forEach((c,i)=>{const done=S.c[pid+'_c_'+i];h+='<div class="citem'+(done?' done':'')+'" onclick="toggleComp(\''+pid+'\','+i+')"><div class="cdot"></div><span>'+c+'</span></div>';});h+='</div>';}
+    if(p.competency&&p.competency.length){h+='<div class="comp"><div class="clbl">PILLAR COMPETENCY CHECK</div>';p.competency.forEach((c,i)=>{h+='<div class="citem'+(S.c[pid+'_c_'+i]?' done':'')+'" data-action="comp" data-pid="'+pid+'" data-idx="'+i+'"><div class="cdot"></div><span>'+c+'</span></div>';});h+='</div>';}
     el.innerHTML=h;
   });
   document.querySelectorAll('.pbtn').forEach((btn,idx)=>{const pid=Object.keys(D)[idx];const all=D[pid].skills.every(s=>s.tasks.every((_,i)=>S.t[s.id+'_'+i]));btn.classList.toggle('done',all);});
 }
-load().then(loaded=>{S=loaded;renderAll();updateHeader();});
+
+// ── Event delegation — no onclick attributes needed, no window exposure ──
+document.addEventListener('click',e=>{
+  // Pillar nav buttons
+  const pbtn=e.target.closest('[data-pillar]');
+  if(pbtn){showPillar(pbtn.dataset.pillar);return;}
+
+  // Reset button
+  if(e.target.closest('#resetbtn')){confirmReset();return;}
+
+  // Skill check (must come before open so the stopPropagation equivalent works)
+  const skillEl=e.target.closest('[data-action="skill"]');
+  if(skillEl){e.stopPropagation();toggleSkill(skillEl.dataset.sid,skillEl.dataset.pid);return;}
+
+  // Skill header open/close
+  const openEl=e.target.closest('[data-action="open"]');
+  if(openEl){toggleOpen(openEl.dataset.sid);return;}
+
+  // Task item
+  const taskEl=e.target.closest('[data-action="task"]');
+  if(taskEl){toggleTask(taskEl.dataset.sid,+taskEl.dataset.idx);return;}
+
+  // Competency item
+  const compEl=e.target.closest('[data-action="comp"]');
+  if(compEl){toggleComp(compEl.dataset.pid,+compEl.dataset.idx);return;}
+});
+
+loadFromFirebase().then(loaded=>{S=loaded;renderAll();updateHeader();});
 </script>
 </body>
 </html>
