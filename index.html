@@ -166,7 +166,20 @@ footer{text-align:center;padding:36px 0;font-family:'Space Mono',monospace;font-
 <div class="toast" id="toast"><div class="ttitle" id="ttitle">+XP</div><div class="tsub" id="tsub">Keep going.</div></div>
 <footer><div class="wrap">THE INVISIBLE EDGE — BUILD WHAT OTHERS CANNOT SEE</div></footer>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyC6GEvz3VK2RKpC3EXqXxRPSrk-G6e5sZw",
+  authDomain: "roadmap-sync-5fc1f.firebaseapp.com",
+  projectId: "roadmap-sync-5fc1f",
+  storageBucket: "roadmap-sync-5fc1f.firebasestorage.app",
+  messagingSenderId: "834903662109",
+  appId: "1:834903662109:web:1b1cc3cc8ae8c852a1b0f4"
+};
+const _app = initializeApp(firebaseConfig);
+const _db = getFirestore(_app);
+const DOC_REF = doc(_db, "progress", "invisible_skills");
 const D={
 p0:{icon:"🧠",title:"How To Think",sub:"Most people react. Thinkers respond. This pillar rewires how you process decisions, people, and problems.",xp:300,skills:[
   {id:"p0s0",title:"Mental Models",sub:"The operating system of your mind",quote:"The man who has a hammer sees every problem as a nail. Collect more tools.",why:"Mental models let you see patterns others miss. Munger built Berkshire Hathaway on this alone.",daily:"Before any decision today — ask: what mental model applies here?",
@@ -260,9 +273,9 @@ p7:{icon:"⚡",title:"Learn Faster",sub:"You're multi-domain and lose interest w
 };
 
 const RANKS=[{min:0,name:"UNFORMED"},{min:300,name:"AWARE"},{min:600,name:"STUDENT"},{min:1000,name:"PRACTITIONER"},{min:1400,name:"OPERATOR"},{min:1800,name:"SOVEREIGN"}];
-let S=load();
-function load(){try{const s=localStorage.getItem('invisible_v2');return s?JSON.parse(s):{t:{},c:{}}}catch(e){return{t:{},c:{}}}}
-function save(){localStorage.setItem('invisible_v2',JSON.stringify(S))}
+let S={t:{},c:{}};
+async function load(){try{const snap=await getDoc(DOC_REF);return snap.exists()?snap.data():{t:{},c:{}}}catch(e){return{t:{},c:{}}}}
+async function save(){try{await setDoc(DOC_REF,S);}catch(e){console.error('Save failed:',e);}}
 function getTotalXP(){let xp=0;Object.entries(D).forEach(([pid,p])=>{p.skills.forEach(s=>{const tot=s.tasks.length,dn=s.tasks.filter((_,i)=>S.t[s.id+'_'+i]).length;xp+=Math.floor((dn/tot)*(p.xp/p.skills.length));});});return xp;}
 function getRank(xp){for(let i=RANKS.length-1;i>=0;i--){if(xp>=RANKS[i].min)return i;}return 0;}
 function updateHeader(){
@@ -315,7 +328,7 @@ function renderAll(){
   });
   document.querySelectorAll('.pbtn').forEach((btn,idx)=>{const pid=Object.keys(D)[idx];const all=D[pid].skills.every(s=>s.tasks.every((_,i)=>S.t[s.id+'_'+i]));btn.classList.toggle('done',all);});
 }
-renderAll();updateHeader();
+load().then(loaded=>{S=loaded;renderAll();updateHeader();});
 </script>
 </body>
 </html>
